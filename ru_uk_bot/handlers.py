@@ -6,7 +6,7 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from .direction import Direction
+from .direction import Direction, Language
 from .keyboards import direction_keyboard
 from .speech.base import SpeechRecognizer
 from .states import TranslationState
@@ -73,7 +73,9 @@ async def translate_voice(
             language=direction.source,
         )
 
-    await message.answer(f"🎤 {text}")
+    await message.answer(
+        f"🎤 {_answer_prefix(direction.source)}{text}",
+    )
 
     await _process_text(
         message=message,
@@ -130,7 +132,7 @@ async def _process_text(
     )
 
     await message.answer(
-        result,
+        f"{_answer_prefix(direction.target)}{result}",
         reply_markup=direction_keyboard(direction) if direction_changed else None,
     )
 
@@ -168,3 +170,7 @@ async def _set_direction(
             await state.set_state(TranslationState.ru_to_uk)
         case Direction.UK_TO_RU:
             await state.set_state(TranslationState.uk_to_ru)
+
+
+def _answer_prefix(lang: Language) -> str:
+    return f"[{lang.value.upper()}] "
