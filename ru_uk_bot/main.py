@@ -7,6 +7,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from .config import settings
 from .handlers import router
 from .middleware import WhitelistMiddleware
+from .speech.google import GoogleSpeechRecognizer
 from .translation.google import GoogleTranslationProvider
 
 
@@ -23,9 +24,12 @@ async def main() -> None:
         project_id=settings.google_cloud_project,
     )
 
+    speech_recognizer = GoogleSpeechRecognizer()
+
     await dp.start_polling(
         bot,
         translator=translator,
+        speech_recognizer=speech_recognizer,
     )
 
 
