@@ -6,7 +6,7 @@ from aiogram.types import Message
 from .direction import Direction
 from .keyboards import direction_keyboard
 from .states import TranslationState
-from .translator import TranslationProvider
+from .translation.base import TranslationProvider
 
 router = Router()
 

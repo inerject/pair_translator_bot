@@ -12,6 +12,7 @@ htmlcov/
 
 .DS_Store
 
+credentials/
 .env
 *.todo
 

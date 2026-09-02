@@ -1,6 +1,9 @@
 {
     "files.exclude": {
         "**/__pycache__": true,
-        "**/.venv": true
-    }
+        "**/.venv": true,
+        "**/*.egg-info": true,
+    },
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.typeCheckingMode": "standard",
 }
