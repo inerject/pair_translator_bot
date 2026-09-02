@@ -1,0 +1,12 @@
+[project]
+name = "ru-uk-bot"
+version = "0.1.0"
+requires-python = ">=3.13,<4"
+dependencies = [
+    "aiogram>=3.31,<4",
+    "pydantic-settings>=2.15,<3",
+]
+
+[build-system]
+requires = ["setuptools>=80"]
+build-backend = "setuptools.build_meta"
