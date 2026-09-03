@@ -1,6 +1,6 @@
 [project]
 name = "ru-uk-bot"
-version = "0.1.0"
+dynamic = ["version"]
 requires-python = ">=3.13,<4"
 
 dependencies = [
@@ -16,3 +16,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["ru_uk_bot*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "ru_uk_bot._version.__version__"}
