@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import shutil
 import subprocess
 import tarfile
@@ -8,22 +7,15 @@ import tempfile
 import uuid
 from pathlib import Path
 
-from dotenv import dotenv_values
+from common import IMAGE_NAME, load_remote_host_arg, run
 
 from ru_uk_bot._version import __version__
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-IMAGE_NAME = "ru-uk-bot"
-
 
 def main() -> None:
-    args = parse_args()
-    env = dotenv_values(args.env_file)
-
-    remote_host = env.get("DOCKER_REMOTE_HOST")
-    if not remote_host:
-        raise RuntimeError(f"DOCKER_REMOTE_HOST is not set in {args.env_file}")
+    remote_host = load_remote_host_arg()
 
     version_tag = f"{IMAGE_NAME}:{__version__}"
     latest_tag = f"{IMAGE_NAME}:latest"
@@ -62,7 +54,7 @@ def main() -> None:
             run(
                 "ssh",
                 remote_host,
-                (f"mkdir -p {remote_dir} && tar -xzf {remote_context} -C {remote_dir}"),
+                f"mkdir -p {remote_dir} && tar -xzf {remote_context} -C {remote_dir}",
             )
 
             run(
@@ -88,20 +80,6 @@ def main() -> None:
                 ],
                 check=False,
             )
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--env-file",
-        type=Path,
-        required=True,
-    )
-    return parser.parse_args()
-
-
-def run(*args: str) -> None:
-    subprocess.run(args, check=True)
 
 
 if __name__ == "__main__":

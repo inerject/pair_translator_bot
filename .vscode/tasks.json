@@ -15,6 +15,17 @@
                 "kind": "build",
                 "isDefault": true
             }
-        }
+        },
+        {
+            "label": "Docker: Publish from RPi",
+            "type": "shell",
+            "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+            "args": [
+                "${workspaceFolder}\\scripts\\publish_docker_rpi.py",
+                "--env-file",
+                "${workspaceFolder}\\scripts\\.env"
+            ],
+            "problemMatcher": []
+        },
     ]
 }
