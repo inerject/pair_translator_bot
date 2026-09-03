@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -12,6 +13,7 @@ from .speech.base import SpeechRecognizer
 from .states import TranslationState
 from .translation.base import TranslationProvider
 
+message_logger = logging.getLogger("messages")
 router = Router()
 
 UK_UNIQUE_CHARS = frozenset("іїєґ")
@@ -74,7 +76,7 @@ async def translate_voice(
         )
 
     await message.answer(
-        f"🎤 {_answer_prefix(direction.source)}{text}",
+        f"🎤 {_lang_prefix(direction.source)}{text}",
     )
 
     await _process_text(
@@ -125,16 +127,23 @@ async def _process_text(
             direction_changed = True
             await _set_direction(state, direction)
 
+    user_id = message.from_user.id if message.from_user else None
+
+    input_text = f"{_lang_prefix(direction.source)}{text}"
+    message_logger.info("%s < %s", user_id, input_text)
+
     result = await translator.translate(
         text=text,
         source=direction.source,
         target=direction.target,
     )
 
+    output_text = f"{_lang_prefix(direction.target)}{result}"
     await message.answer(
-        f"{_answer_prefix(direction.target)}{result}",
+        output_text,
         reply_markup=direction_keyboard(direction) if direction_changed else None,
     )
+    message_logger.info("%s > %s", user_id, output_text)
 
 
 def _detect_direction(text: str) -> Direction | None:
@@ -172,5 +181,5 @@ async def _set_direction(
             await state.set_state(TranslationState.uk_to_ru)
 
 
-def _answer_prefix(lang: Language) -> str:
+def _lang_prefix(lang: Language) -> str:
     return f"[{lang.value.upper()}] "

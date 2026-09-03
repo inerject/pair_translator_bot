@@ -1,18 +1,18 @@
 import asyncio
-import logging
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from .config import settings
 from .handlers import router
+from .logging_config import setup_logging
 from .middleware import WhitelistMiddleware
 from .speech.google import GoogleSpeechRecognizer
 from .translation.google import GoogleTranslationProvider
 
 
 async def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+    setup_logging()
 
     bot = Bot(token=settings.bot_token.get_secret_value())
     dp = Dispatcher(storage=MemoryStorage())

@@ -13,6 +13,7 @@ htmlcov/
 .DS_Store
 
 credentials/
+logs/
 .env
 *.todo
 
