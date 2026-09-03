@@ -6,7 +6,7 @@ from pathlib import Path
 
 from dotenv import dotenv_values
 
-IMAGE_NAME = "ru-uk-bot"
+IMAGE_NAME = "pair-translator-bot"
 DOCKER_HUB_NAMESPACE = "inerject"
 
 

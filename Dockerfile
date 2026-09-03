@@ -3,8 +3,8 @@ FROM python:3.13-slim
 WORKDIR /app
 
 COPY pyproject.toml ./
-COPY ru_uk_bot/ ./ru_uk_bot/
+COPY pair_translator_bot/ ./pair_translator_bot/
 
 RUN pip install --no-cache-dir .
 
-CMD ["python", "-m", "ru_uk_bot.main"]
+CMD ["python", "-m", "pair_translator_bot.main"]

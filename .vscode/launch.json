@@ -5,7 +5,7 @@
             "name": "Run proj",
             "type": "debugpy",
             "request": "launch",
-            "module": "ru_uk_bot.main",
+            "module": "pair_translator_bot.main",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "envFile": "${workspaceFolder}/.env"

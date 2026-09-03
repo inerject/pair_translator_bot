@@ -1,5 +1,5 @@
 [project]
-name = "ru-uk-bot"
+name = "pair-translator-bot"
 dynamic = ["version"]
 requires-python = ">=3.13,<4"
 
@@ -15,7 +15,7 @@ requires = ["setuptools>=80"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["ru_uk_bot*"]
+include = ["pair_translator_bot*"]
 
 [tool.setuptools.dynamic]
-version = {attr = "ru_uk_bot._version.__version__"}
+version = {attr = "pair_translator_bot._version.__version__"}

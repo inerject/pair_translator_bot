@@ -9,7 +9,7 @@ from pathlib import Path
 
 from common import IMAGE_NAME, load_remote_host_arg, run
 
-from ru_uk_bot._version import __version__
+from pair_translator_bot._version import __version__
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -37,8 +37,8 @@ def main() -> None:
         shutil.copy2(PROJECT_ROOT / ".dockerignore", stage_dir)
 
         shutil.copytree(
-            PROJECT_ROOT / "ru_uk_bot",
-            stage_dir / "ru_uk_bot",
+            PROJECT_ROOT / "pair_translator_bot",
+            stage_dir / "pair_translator_bot",
         )
 
         with tarfile.open(archive_path, "w:gz") as archive:

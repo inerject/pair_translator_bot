@@ -12,7 +12,7 @@ from .middleware import WhitelistMiddleware
 from .speech.google import GoogleSpeechRecognizer
 from .translation.google import GoogleTranslationProvider
 
-APP_NAME = "ru-uk-bot"
+APP_NAME = "pair-translator-bot"
 FULL_APP_NAME = f"{APP_NAME} v{__version__}"
 
 logger = logging.getLogger(__name__)

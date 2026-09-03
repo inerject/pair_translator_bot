@@ -7,7 +7,7 @@ from common import (
     run,
 )
 
-from ru_uk_bot._version import __version__
+from pair_translator_bot._version import __version__
 
 DOCKER_HUB_IMAGE = f"{DOCKER_HUB_NAMESPACE}/{IMAGE_NAME}"
 
