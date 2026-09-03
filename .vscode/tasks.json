@@ -1,0 +1,20 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Docker: Build on RPi",
+            "type": "shell",
+            "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+            "args": [
+                "${workspaceFolder}\\scripts\\build_docker_rpi.py",
+                "--env-file",
+                "${workspaceFolder}\\scripts\\.env"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
