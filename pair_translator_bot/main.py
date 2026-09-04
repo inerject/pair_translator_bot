@@ -3,6 +3,7 @@ import logging
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import BotCommand
 
 from ._version import __version__
 from .config import settings
@@ -25,6 +26,19 @@ async def main() -> None:
 
     bot = Bot(token=settings.bot_token.get_secret_value())
     dp = Dispatcher(storage=MemoryStorage())
+
+    await bot.set_my_commands(
+        [
+            BotCommand(
+                command="start",
+                description="Start the bot",
+            ),
+            BotCommand(
+                command="help",
+                description="Help",
+            ),
+        ]
+    )
 
     dp.update.outer_middleware(WhitelistMiddleware(settings.allowed_user_ids))
     dp.include_router(router)
