@@ -1,0 +1,27 @@
+services:
+  bot:
+    image: inerject/pair-translator-bot:latest
+    container_name: pair-translator-bot
+    restart: unless-stopped
+
+    environment:
+      BOT_TOKEN: "${PAIR_TRANSLATOR_BOT_TOKEN}"
+      ALLOWED_USER_IDS: "${PAIR_TRANSLATOR_BOT_ALLOWED_USER_IDS}"
+
+      GOOGLE_CLOUD_PROJECT: "${PAIR_TRANSLATOR_BOT_GOOGLE_CLOUD_PROJECT}"
+      GOOGLE_APPLICATION_CREDENTIALS: "/app/credentials/service-account.json"
+
+      # --- Optional ---
+      # TZ: "Europe/Kyiv"
+
+      # LOG_MAX_BYTES:
+      # LOG_BACKUP_COUNT:
+
+      # LOG_MESSAGE_TEXT:
+      # MESSAGE_LOG_MAX_BYTES:
+      # MESSAGE_LOG_BACKUP_COUNT:
+
+    volumes:
+      - ./credentials:/app/credentials:ro
+      - ./logs:/app/logs
+      - ./cache:/app/cache
