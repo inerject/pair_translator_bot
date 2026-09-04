@@ -17,6 +17,7 @@ htmlcov/
 
 credentials/
 logs/
+cache/
 scripts/
 .env
 *.todo

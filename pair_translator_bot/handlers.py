@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from aiogram import Bot, F, Router
-from aiogram.filters import CommandStart
+from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
@@ -11,23 +11,46 @@ from .direction import Direction, Language
 from .keyboards import direction_keyboard
 from .speech.base import SpeechRecognizer
 from .states import TranslationState
+from .texts import get_help_text
 from .translation.base import TranslationProvider
 
-message_logger = logging.getLogger("messages")
-router = Router()
+BASE_DIRECTION = Direction.RU_TO_UK
 
 UK_UNIQUE_CHARS = frozenset("іїєґ")
 RU_UNIQUE_CHARS = frozenset("ыэёъ")
 
+message_logger = logging.getLogger("messages")
+router = Router()
+
 
 @router.message(CommandStart())
-async def start(message: Message, state: FSMContext) -> None:
-    direction = Direction.RU_TO_UK
+async def start(
+    message: Message,
+    state: FSMContext,
+    translator: TranslationProvider,
+) -> None:
+    direction = BASE_DIRECTION
     await _set_direction(state, direction)
 
-    await message.answer(
-        "Надішли текст для перекладу.",
-        reply_markup=direction_keyboard(direction),
+    await _send_help(
+        message=message,
+        state=state,
+        translator=translator,
+        show_keyboard=True,
+    )
+
+
+@router.message(Command("help"))
+async def help_command(
+    message: Message,
+    state: FSMContext,
+    translator: TranslationProvider,
+) -> None:
+    await _send_help(
+        message=message,
+        state=state,
+        translator=translator,
+        show_keyboard=False,
     )
 
 
@@ -106,6 +129,28 @@ async def translate_text(
         state=state,
         translator=translator,
         text=text,
+    )
+
+
+async def _send_help(
+    message: Message,
+    state: FSMContext,
+    translator: TranslationProvider,
+    show_keyboard: bool,
+) -> None:
+    text = await get_help_text(
+        translator,
+        target_language_code=BASE_DIRECTION.target.value,
+    )
+
+    reply_markup = None
+    if show_keyboard:
+        direction = await _get_direction(state)
+        reply_markup = direction_keyboard(direction)
+
+    await message.answer(
+        text,
+        reply_markup=reply_markup,
     )
 
 
