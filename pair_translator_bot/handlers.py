@@ -7,17 +7,14 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from .direction import Direction, Language
 from .keyboards import direction_keyboard
+from .language_pair import Direction, Language, LanguagePair
 from .speech.base import SpeechRecognizer
 from .states import TranslationState
 from .texts import get_help_text
 from .translation.base import TranslationProvider
 
-BASE_DIRECTION = Direction.RU_TO_UK
-
-UK_UNIQUE_CHARS = frozenset("іїєґ")
-RU_UNIQUE_CHARS = frozenset("ыэёъ")
+BASE_DIRECTION = Direction.FORWARD
 
 message_logger = logging.getLogger("messages")
 router = Router()
@@ -28,14 +25,15 @@ async def start(
     message: Message,
     state: FSMContext,
     translator: TranslationProvider,
+    language_pair: LanguagePair,
 ) -> None:
-    direction = BASE_DIRECTION
-    await _set_direction(state, direction)
+    await _set_direction(state, BASE_DIRECTION)
 
     await _send_help(
         message=message,
         state=state,
         translator=translator,
+        language_pair=language_pair,
         show_keyboard=True,
     )
 
@@ -45,30 +43,14 @@ async def help_command(
     message: Message,
     state: FSMContext,
     translator: TranslationProvider,
+    language_pair: LanguagePair,
 ) -> None:
     await _send_help(
         message=message,
         state=state,
         translator=translator,
+        language_pair=language_pair,
         show_keyboard=False,
-    )
-
-
-@router.message(
-    F.text.in_(
-        {
-            Direction.RU_TO_UK.label,
-            Direction.UK_TO_RU.label,
-        }
-    )
-)
-async def toggle_direction(message: Message, state: FSMContext) -> None:
-    direction = (await _get_direction(state)).opposite()
-    await _set_direction(state, direction)
-
-    await message.answer(
-        direction.label,
-        reply_markup=direction_keyboard(direction),
     )
 
 
@@ -79,11 +61,13 @@ async def translate_voice(
     state: FSMContext,
     translator: TranslationProvider,
     speech_recognizer: SpeechRecognizer,
+    language_pair: LanguagePair,
 ) -> None:
     if message.voice is None:
         return
 
     direction = await _get_direction(state)
+    source = language_pair.source_for(direction)
 
     with TemporaryDirectory() as temp_dir:
         audio_path = Path(temp_dir) / "voice.ogg"
@@ -95,27 +79,29 @@ async def translate_voice(
 
         text = await speech_recognizer.transcribe(
             audio_path,
-            language=direction.source,
+            language=source,
         )
 
     await message.answer(
-        f"🎤 {_lang_prefix(direction.source)}{text}",
+        f"🎤 {_lang_prefix(source)}{text}",
     )
 
     await _process_text(
         message=message,
         state=state,
         translator=translator,
+        language_pair=language_pair,
         text=text,
         direction=direction,
     )
 
 
 @router.message(F.text)
-async def translate_text(
+async def handle_text(
     message: Message,
     state: FSMContext,
     translator: TranslationProvider,
+    language_pair: LanguagePair,
 ) -> None:
     if message.text is None:
         return
@@ -124,10 +110,26 @@ async def translate_text(
     if not text:
         return
 
+    direction = await _get_direction(state)
+
+    if _is_direction_button(text, language_pair):
+        direction = direction.opposite()
+        await _set_direction(state, direction)
+
+        await message.answer(
+            language_pair.label_for(direction),
+            reply_markup=direction_keyboard(
+                direction,
+                language_pair,
+            ),
+        )
+        return
+
     await _process_text(
         message=message,
         state=state,
         translator=translator,
+        language_pair=language_pair,
         text=text,
     )
 
@@ -136,17 +138,22 @@ async def _send_help(
     message: Message,
     state: FSMContext,
     translator: TranslationProvider,
+    language_pair: LanguagePair,
     show_keyboard: bool,
 ) -> None:
     text = await get_help_text(
         translator,
-        target_language_code=BASE_DIRECTION.target.value,
+        target_language_code=language_pair.target.code,
     )
 
     reply_markup = None
+
     if show_keyboard:
         direction = await _get_direction(state)
-        reply_markup = direction_keyboard(direction)
+        reply_markup = direction_keyboard(
+            direction,
+            language_pair,
+        )
 
     await message.answer(
         text,
@@ -158,6 +165,7 @@ async def _process_text(
     message: Message,
     state: FSMContext,
     translator: TranslationProvider,
+    language_pair: LanguagePair,
     text: str,
     direction: Direction | None = None,
 ) -> None:
@@ -166,65 +174,68 @@ async def _process_text(
     if direction is None:
         direction = await _get_direction(state)
 
-        detected_direction = _detect_direction(text)
-        if detected_direction is not None and detected_direction != direction:
+        detected_direction = language_pair.detect_direction(text)
+
+        if detected_direction is not None and detected_direction is not direction:
             direction = detected_direction
             direction_changed = True
             await _set_direction(state, direction)
 
+    source = language_pair.source_for(direction)
+    target = language_pair.target_for(direction)
+
     user_id = message.from_user.id if message.from_user else None
 
-    input_text = f"{_lang_prefix(direction.source)}{text}"
+    input_text = f"{_lang_prefix(source)}{text}"
     message_logger.info("%s < %s", user_id, input_text)
 
     result = await translator.translate(
         text=text,
-        source=direction.source,
-        target=direction.target,
+        source=source,
+        target=target,
     )
 
-    output_text = f"{_lang_prefix(direction.target)}{result}"
+    output_text = f"{_lang_prefix(target)}{result}"
+
     await message.answer(
         output_text,
-        reply_markup=direction_keyboard(direction) if direction_changed else None,
+        reply_markup=(
+            direction_keyboard(direction, language_pair) if direction_changed else None
+        ),
     )
+
     message_logger.info("%s > %s", user_id, output_text)
 
 
-def _detect_direction(text: str) -> Direction | None:
-    chars = set(text.lower())
-
-    has_uk = bool(chars & UK_UNIQUE_CHARS)
-    has_ru = bool(chars & RU_UNIQUE_CHARS)
-
-    if has_uk and not has_ru:
-        return Direction.UK_TO_RU
-
-    if has_ru and not has_uk:
-        return Direction.RU_TO_UK
-
-    return None
+def _is_direction_button(
+    text: str,
+    language_pair: LanguagePair,
+) -> bool:
+    return text in {
+        language_pair.label_for(Direction.FORWARD),
+        language_pair.label_for(Direction.REVERSE),
+    }
 
 
-async def _get_direction(state: FSMContext) -> Direction:
-    current_state = await state.get_state()
-
-    if current_state == TranslationState.uk_to_ru.state:
-        return Direction.UK_TO_RU
-
-    return Direction.RU_TO_UK
+def _lang_prefix(language: Language) -> str:
+    return f"[{language.label}] "
 
 
 async def _set_direction(
     state: FSMContext,
     direction: Direction,
 ) -> None:
-    match direction:
-        case Direction.RU_TO_UK:
-            await state.set_state(TranslationState.ru_to_uk)
-        case Direction.UK_TO_RU:
-            await state.set_state(TranslationState.uk_to_ru)
+    await state.set_state(
+        TranslationState.forward
+        if direction is Direction.FORWARD
+        else TranslationState.reverse
+    )
 
 
-def _lang_prefix(lang: Language) -> str:
-    return f"[{lang.value.upper()}] "
+async def _get_direction(state: FSMContext) -> Direction:
+    current_state = await state.get_state()
+
+    if current_state == TranslationState.reverse.state:
+        return Direction.REVERSE
+
+    return Direction.FORWARD

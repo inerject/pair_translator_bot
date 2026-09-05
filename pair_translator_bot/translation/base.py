@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ..direction import Language
+from ..language_pair import Language
 
 
 class TranslationError(Exception): ...
@@ -23,6 +23,6 @@ class TranslationProvider(ABC):
     ) -> str:
         return await self.translate_codes(
             text,
-            source.value,
-            target.value,
+            source.code,
+            target.code,
         )

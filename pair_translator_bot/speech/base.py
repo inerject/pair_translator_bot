@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from ..direction import Language
+from ..language_pair import Language
 
 
 class SpeechRecognitionError(Exception): ...

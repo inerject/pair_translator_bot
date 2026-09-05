@@ -8,6 +8,7 @@ from aiogram.types import BotCommand
 from ._version import __version__
 from .config import settings
 from .handlers import router
+from .language_pair import prepare_language_pair
 from .logging_config import setup_logging
 from .middleware import WhitelistMiddleware
 from .speech.google import GoogleSpeechRecognizer
@@ -46,17 +47,15 @@ async def main() -> None:
     translator = GoogleTranslationProvider(
         project_id=settings.google_cloud_project,
     )
-
     speech_recognizer = GoogleSpeechRecognizer()
+    language_pair = await prepare_language_pair(settings)
 
-    try:
-        await dp.start_polling(
-            bot,
-            translator=translator,
-            speech_recognizer=speech_recognizer,
-        )
-    finally:
-        logger.info("Stop %s", FULL_APP_NAME)
+    await dp.start_polling(
+        bot,
+        translator=translator,
+        speech_recognizer=speech_recognizer,
+        language_pair=language_pair,
+    )
 
 
 if __name__ == "__main__":

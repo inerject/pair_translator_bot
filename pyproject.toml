@@ -8,6 +8,7 @@ dependencies = [
     "pydantic-settings>=2.15,<3",
     "google-cloud-translate>=3,<4",
     "google-cloud-speech>=2,<3",
+    "gflanguages>=0.7,<1",
 ]
 
 [build-system]
