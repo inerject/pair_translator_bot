@@ -5,12 +5,11 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand
 
-from pair_translator_bot.language_pair.errors import LanguagePairConfigurationError
-
 from ._version import __version__
 from .config import settings
 from .handlers import configuration_error_router, router
 from .language_pair import prepare_language_pair
+from .language_pair.errors import LanguagePairConfigurationError
 from .logging_config import setup_logging
 from .middleware import WhitelistMiddleware
 from .speech.google import GoogleSpeechRecognizer
