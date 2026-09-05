@@ -3,16 +3,20 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    base_source_language_code: str
+    base_source_google_speech_language_code: str
+    base_target_language_code: str
+    base_target_google_speech_language_code: str
+
     bot_token: SecretStr
     allowed_user_ids: set[int]
 
     google_cloud_project: str
 
-    log_message_text: bool = False
-
     log_max_bytes: int = 5 * 1024 * 1024
     log_backup_count: int = 10
 
+    log_message_text: bool = False
     message_log_max_bytes: int = 10 * 1024 * 1024
     message_log_backup_count: int = 10
 
