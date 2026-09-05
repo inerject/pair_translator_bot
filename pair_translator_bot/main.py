@@ -5,9 +5,11 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand
 
+from pair_translator_bot.language_pair.errors import LanguagePairConfigurationError
+
 from ._version import __version__
 from .config import settings
-from .handlers import router
+from .handlers import configuration_error_router, router
 from .language_pair import prepare_language_pair
 from .logging_config import setup_logging
 from .middleware import WhitelistMiddleware
@@ -42,21 +44,35 @@ async def main() -> None:
     )
 
     dp.update.outer_middleware(WhitelistMiddleware(settings.allowed_user_ids))
-    dp.include_router(router)
-
-    translator = GoogleTranslationProvider(
-        project_id=settings.google_cloud_project,
-    )
-    speech_recognizer = GoogleSpeechRecognizer()
-    language_pair = await prepare_language_pair(settings)
 
     try:
-        await dp.start_polling(
-            bot,
-            translator=translator,
-            speech_recognizer=speech_recognizer,
-            language_pair=language_pair,
-        )
+        try:
+            language_pair = await prepare_language_pair(settings)
+        except LanguagePairConfigurationError as exc:
+            language_pair_error = str(exc)
+
+            logger.error(
+                "Invalid language pair configuration: %s",
+                language_pair_error,
+            )
+
+            dp.include_router(configuration_error_router)
+
+            await dp.start_polling(
+                bot,
+                language_pair_error=language_pair_error,
+            )
+        else:
+            dp.include_router(router)
+
+            await dp.start_polling(
+                bot,
+                translator=GoogleTranslationProvider(
+                    project_id=settings.google_cloud_project,
+                ),
+                speech_recognizer=GoogleSpeechRecognizer(),
+                language_pair=language_pair,
+            )
     finally:
         logger.info("Stop %s", FULL_APP_NAME)
 

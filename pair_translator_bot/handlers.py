@@ -17,7 +17,9 @@ from .translation.base import TranslationProvider
 BASE_DIRECTION = Direction.FORWARD
 
 message_logger = logging.getLogger("messages")
+
 router = Router()
+configuration_error_router = Router()
 
 
 @router.message(CommandStart())
@@ -239,3 +241,11 @@ async def _get_direction(state: FSMContext) -> Direction:
         return Direction.REVERSE
 
     return Direction.FORWARD
+
+
+@configuration_error_router.message()
+async def configuration_error(
+    message: Message,
+    language_pair_error: str,
+) -> None:
+    await message.answer(f"Language configuration error:\n\n{language_pair_error}")
