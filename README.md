@@ -19,15 +19,20 @@ It supports both text and Telegram voice messages.
 - Rotating application and optional message-content logs
 - Docker image and Docker Compose example
 
-## Current language pair
+## Language pair configuration
 
-The current implementation is configured for:
+The bot works with exactly two configured languages. The pair is defined by the base source and target language codes:
 
-```text
-Russian ↔ Ukrainian
+```dotenv
+BASE_SOURCE_LANGUAGE_CODE=ru
+BASE_SOURCE_GOOGLE_SPEECH_LANGUAGE_CODE=ru-RU
+BASE_TARGET_LANGUAGE_CODE=uk
+BASE_TARGET_GOOGLE_SPEECH_LANGUAGE_CODE=uk-UA
 ```
 
-The project structure is intended to allow the fixed language pair to be generalized later without turning the bot into a universal multi-language translator.
+The same bot can be configured for other language pairs by changing these values.
+
+The translation language codes are validated against Google Cloud Translation. The Google Speech-to-Text language codes are also validated during initial setup. Language-specific character sets used for automatic direction detection are prepared automatically and cached for reuse.
 
 ## Requirements
 
@@ -68,6 +73,16 @@ Edit `.env`:
 PAIR_TRANSLATOR_BOT_TOKEN=123456789:YOUR_TELEGRAM_BOT_TOKEN
 PAIR_TRANSLATOR_BOT_ALLOWED_USER_IDS=[123456789]
 PAIR_TRANSLATOR_BOT_GOOGLE_CLOUD_PROJECT=my-google-cloud-project
+```
+
+Then set the language pair in `docker-compose.yml`, for example:
+
+```yaml
+environment:
+  BASE_SOURCE_LANGUAGE_CODE: ru
+  BASE_SOURCE_GOOGLE_SPEECH_LANGUAGE_CODE: ru-RU
+  BASE_TARGET_LANGUAGE_CODE: uk
+  BASE_TARGET_GOOGLE_SPEECH_LANGUAGE_CODE: uk-UA
 ```
 
 Then start the bot:
@@ -147,6 +162,8 @@ MESSAGE_LOG_BACKUP_COUNT
 ```
 
 See `.env.example` and `compose.example.yml` for details.
+
+On first use of a new language pair, the bot validates the configured language codes and prepares the character sets used for automatic text-direction detection. The result is cached per language-pair configuration, so previously validated pairs can be reused without repeating the setup work.
 
 `TZ` can also be set in Docker Compose if local timestamps are desired:
 
