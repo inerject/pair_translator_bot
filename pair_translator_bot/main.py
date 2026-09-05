@@ -50,12 +50,15 @@ async def main() -> None:
     speech_recognizer = GoogleSpeechRecognizer()
     language_pair = await prepare_language_pair(settings)
 
-    await dp.start_polling(
-        bot,
-        translator=translator,
-        speech_recognizer=speech_recognizer,
-        language_pair=language_pair,
-    )
+    try:
+        await dp.start_polling(
+            bot,
+            translator=translator,
+            speech_recognizer=speech_recognizer,
+            language_pair=language_pair,
+        )
+    finally:
+        logger.info("Stop %s", FULL_APP_NAME)
 
 
 if __name__ == "__main__":
